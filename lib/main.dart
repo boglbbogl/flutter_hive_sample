@@ -7,7 +7,6 @@ void main() async {
   await Hive.initFlutter();
   Hive.openBox("todo");
   Hive.registerAdapter(TodoAdapter());
-  // Hive.registerAdapter(BrandAdapter());
   runApp(const MyApp());
 }
 
