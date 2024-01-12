@@ -18,9 +18,9 @@ class TodoAdapter extends TypeAdapter<Todo> {
     };
     return Todo(
       no: fields[0] as int,
-      title: fields[1] as String,
-      content: fields[2] as String,
-      tag: fields[3] as int,
+      content: fields[1] as String?,
+      tag: fields[2] as int,
+      isCheck: fields[3] as bool,
       createdAt: fields[4] as DateTime,
       updatedAt: fields[5] as DateTime,
     );
@@ -33,11 +33,11 @@ class TodoAdapter extends TypeAdapter<Todo> {
       ..writeByte(0)
       ..write(obj.no)
       ..writeByte(1)
-      ..write(obj.title)
-      ..writeByte(2)
       ..write(obj.content)
-      ..writeByte(3)
+      ..writeByte(2)
       ..write(obj.tag)
+      ..writeByte(3)
+      ..write(obj.isCheck)
       ..writeByte(4)
       ..write(obj.createdAt)
       ..writeByte(5)

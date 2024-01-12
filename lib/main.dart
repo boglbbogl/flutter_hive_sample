@@ -5,8 +5,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   await Hive.initFlutter();
-  Hive.openBox("todo");
   Hive.registerAdapter(TodoAdapter());
+  Hive.openBox<Todo>("todo");
   runApp(const MyApp());
 }
 
