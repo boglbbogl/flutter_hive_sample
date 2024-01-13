@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_hive_sample/todo.dart';
-import 'package:flutter_hive_sample/todo_edit_widget.dart';
+import 'package:flutter_hive_sample/_sample/todo.dart';
+import 'package:flutter_hive_sample/_sample/todo_edit_widget.dart';
+import 'package:flutter_hive_sample/_sample/todo_item_widget.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class HomePage extends StatefulWidget {
@@ -12,19 +13,60 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late Box<Todo> _box;
+  final ValueNotifier<List<Todo>> _todos = ValueNotifier([]);
   @override
   void initState() {
     super.initState();
+    _box = Hive.box<Todo>("todo");
+    _init();
   }
 
-  void _addTodo(Object? value) async {
+  void _init() async {
+    _todos.value = _box.values.map((e) => e).toList();
+    _sort();
+  }
+
+  void _updated(Object? value) async {
     if (value != null) {
       Todo todo = value as Todo;
-      print(todo);
-      Box<Todo> box = Hive.box<Todo>("todo");
-      print(box.values);
-      box.add(todo);
-      // await box.add();
+      _box.put("${todo.no}", todo);
+      int i = _todos.value.indexWhere((e) => e.no == todo.no);
+      if (i < 0) {
+        _todos.value = List.from(_todos.value)..add(todo);
+      } else {
+        _todos.value = List.from(_todos.value)
+          ..removeAt(i)
+          ..insert(i, todo);
+      }
+      _sort();
+    }
+  }
+
+  void _sort() {
+    _todos.value = [
+      ..._todos.value.where((e) => !e.isCheck).toList()
+        ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
+      ..._todos.value.where((e) => e.isCheck).toList()
+        ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
+    ];
+  }
+
+  void _onChecked(Todo todo, int index) {
+    _box.put("${todo.no}", todo);
+    _todos.value = List.from(_todos.value)
+      ..removeAt(index)
+      ..insert(index, todo);
+    _sort();
+  }
+
+  void _onDeleted(int? no) {
+    if (no == null) {
+      _box.clear();
+      _todos.value = [];
+    } else {
+      _box.delete("$no");
+      _todos.value = List.from(_todos.value)..removeWhere((e) => e.no == no);
     }
   }
 
@@ -76,15 +118,19 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
-                SliverList.builder(
-                    itemCount: 10,
-                    itemBuilder: (BuildContext context, int index) {
-                      return Container(
-                        child: Text(
-                          MediaQuery.of(context).viewInsets.bottom.toString(),
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      );
+                ValueListenableBuilder(
+                    valueListenable: _todos,
+                    builder: (context, todos, child) {
+                      return SliverList.builder(
+                          itemCount: todos.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return TodoItemWidget(
+                              todo: todos[index],
+                              onTap: () => _showEditSheet(todo: todos[index]),
+                              onChecked: (Todo todo) => _onChecked(todo, index),
+                              onDeleted: _onDeleted,
+                            );
+                          });
                     })
               ],
             ),
@@ -94,11 +140,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _showEditSheet() async {
+  Future<void> _showEditSheet({Todo? todo}) async {
     await showModalBottomSheet(
       context: context,
-      builder: (context) => const TodoEditWidget(),
+      builder: (context) => TodoEditWidget(
+        update: todo,
+      ),
       isScrollControlled: true,
-    ).then(_addTodo);
+    ).then(_updated);
   }
 }

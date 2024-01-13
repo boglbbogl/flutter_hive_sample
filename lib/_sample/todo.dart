@@ -8,7 +8,7 @@ class Todo {
   final int no;
 
   @HiveField(1)
-  final String? content;
+  final String content;
 
   @HiveField(2)
   final int tag;
@@ -31,7 +31,7 @@ class Todo {
     required this.updatedAt,
   });
 
-  factory Todo.create(String? content, int current) => Todo(
+  factory Todo.create(String content, int current) => Todo(
         no: DateTime.now().millisecondsSinceEpoch,
         content: content,
         tag: current,
@@ -39,6 +39,25 @@ class Todo {
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
+
+  Todo copyWith({
+    final int? no,
+    final String? content,
+    final int? tag,
+    final bool? isCheck,
+    final DateTime? createdAt,
+    final DateTime? updatedAt,
+  }) {
+    return Todo(
+      no: no ?? this.no,
+      content: content ?? this.content,
+      tag: tag ?? this.tag,
+      isCheck: isCheck ?? this.isCheck,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
   @override
   String toString() =>
       "Todo(no: $no, content: $content, tag: $tag, isCheck: $isCheck, createdAt: $createdAt, updatedAt: $updatedAt)";

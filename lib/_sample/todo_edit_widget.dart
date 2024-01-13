@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_hive_sample/todo.dart';
+import 'package:flutter_hive_sample/_sample/todo.dart';
+import 'package:flutter_hive_sample/_sample/todo_color.dart';
 
 class TodoEditWidget extends StatefulWidget {
-  const TodoEditWidget({super.key});
+  final Todo? update;
+  const TodoEditWidget({
+    super.key,
+    required this.update,
+  });
 
   @override
   State<TodoEditWidget> createState() => _TodoEditWidgetState();
@@ -13,25 +18,21 @@ class _TodoEditWidgetState extends State<TodoEditWidget> {
   late TextEditingController controller;
   ValueNotifier<int> current = ValueNotifier(0);
 
-  final List<Color> colors = [
-    Colors.red,
-    Colors.amber,
-    Colors.purple,
-    Colors.lightBlue,
-    Colors.blue,
-    Colors.deepOrange,
-    Colors.pink,
-    Colors.teal,
-    Colors.indigo,
-    Colors.green,
-  ];
+  List<Color> colors = [];
 
   void onChanged(int index) => current.value = index;
 
   @override
   void initState() {
     super.initState();
-    controller = TextEditingController();
+    if (widget.update != null) {
+      controller = TextEditingController(text: widget.update!.content);
+      current.value = widget.update!.tag;
+    } else {
+      controller = TextEditingController();
+    }
+
+    colors = TodoColor.setColors();
   }
 
   @override
@@ -52,9 +53,9 @@ class _TodoEditWidgetState extends State<TodoEditWidget> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    "CREATE TODO",
-                    style: TextStyle(
+                  Text(
+                    widget.update == null ? "CREATE TODO" : "UPDATE TODO",
+                    style: const TextStyle(
                       fontWeight: FontWeight.w800,
                       color: Colors.black,
                       fontSize: 18,
@@ -63,12 +64,16 @@ class _TodoEditWidgetState extends State<TodoEditWidget> {
                   GestureDetector(
                     onTap: () {
                       HapticFeedback.mediumImpact();
-                      Navigator.of(context)
-                          .pop(Todo.create(controller.text, current.value));
+                      Navigator.of(context).pop(
+                        widget.update == null
+                            ? Todo.create(controller.text, current.value)
+                            : widget.update!.copyWith(
+                                content: controller.text, tag: current.value),
+                      );
                     },
-                    child: const Text(
-                      "SAVE",
-                      style: TextStyle(
+                    child: Text(
+                      widget.update == null ? "SAVE" : "CHAGNGE",
+                      style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         color: Colors.red,
                         fontSize: 14,
