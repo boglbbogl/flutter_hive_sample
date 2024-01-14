@@ -1,4 +1,4 @@
-package com.example.flutter_hive_sample
+package com.tyger.flutterHiveSample
 
 import io.flutter.embedding.android.FlutterActivity
 
